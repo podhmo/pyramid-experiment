@@ -6,7 +6,6 @@ from zope.interface import implements
 class ConvertorMap(object):
     implements(IConvertorMap)
     def __init__(self, constructor):
-        import pdb; pdb.set_trace()
         self.constructor = constructor
 
     def register(self, name, convertor):
@@ -16,26 +15,23 @@ class ConvertorMap(object):
         convertor = self.constructor.create(*args, **kwargs)
         self.register(name, convertor)
 
-class BaseConvertor(object):
-    implements(IConvertor)
-
 ## model schema convertor
 class ModelSchemaConvertorFactory(object):
     implements(IConvertorFactory)
     def __init__(self, modelmapping, schemamapping):
         self.modelmapping = modelmapping
         self.schemamapping = schemamapping
+        self.create = self.create_factory()
 
-    def create(self, name, model=None, schema=None):
+    def create_factory(self):
         me = self
-        def __init__(self, model, schema):
-            self.model = me.modelmapping(model)
-            self.schema = me.schemamapping(schema)
-            self.to = To(self.model, self.schema)
-
-        attr = {}
-        attr["__init__"] = __init__
-        return type(name, (BaseConvertor, ), attr)
+        class Convertor(object):
+            implements(IConvertor)
+            def __init__(self, model, schema):
+                self.model = me.modelmapping(model)
+                self.schema = me.schemamapping(schema)
+                self.to = To(self.model, self.schema)
+        return Convertor
 
 class To(object):
     def __init__(self, mmapping,  smapping):

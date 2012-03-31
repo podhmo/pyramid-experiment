@@ -15,7 +15,7 @@ def main(global_config, **settings):
     from .convertor.model.alchemy import ModelMapping
     from .convertor.schema.wtforms import SchemaMapping
     config.define_convertor_factory(ModelSchemaConvertorFactory(ModelMapping, SchemaMapping))
-    config.set_request_property(".convertor.get_convertor_map", "C", reify=True)
+    config.set_request_property(".convertor.get_convertor_map", "convert_map", reify=True)
 
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('point_create', '/point/create', factory="point.resouces.PointResources")

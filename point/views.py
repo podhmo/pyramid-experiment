@@ -2,8 +2,7 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 from pyramid.httpexceptions import HTTPFound
 from .viewhelpers import RegisterPredicate
-from . import convertor as C
-from . import forms
+from pyramid.decorator import reify
 
 class AfterInput(Exception):
     pass
@@ -15,12 +14,16 @@ class PointRegisterView(object):
     def __init__(self, request):
         self.request = request
 
+    @reify
+    def C(self):
+        return self.request.convert_map.point
+
     @view_config(context=AfterInput, renderer="point/input.mako")
     def _after_input(self):
         return {"form": self.request._form, "stage": "confirm"}
 
     def _form_from_postdata(self, postdata):
-        form = C.schema.from_postdata(postdata)
+        form = self.C.schema.from_postdata(postdata)
         if form.validate():
             return form
         else:
@@ -29,7 +32,7 @@ class PointRegisterView(object):
 
     @view_config(request_method="GET")
     def input(self):
-        self.request._form = C.schema()
+        self.request._form = self.C.schema()
         raise AfterInput
         
     @view_config(request_method="POST", renderer="point/confirm.mako",
@@ -41,7 +44,7 @@ class PointRegisterView(object):
     @view_config(request_method="POST", custom_predicates=[RegisterPredicate.execute_p])
     def execute(self):
         form = self._form_from_postdata(self.request.POST)
-        obj = C.model.from_dict(form.data)
+        obj = self.C.model.from_dict(form.data)
         self.request.context.add(obj)
         return HTTPFound(location=self.request.route_url("point_list"))
     

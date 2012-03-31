@@ -30,9 +30,8 @@ def add_convertor(config, name, convertor):
     cnvmap.register(name, convertor)
 
 @action_method
-def add_convertor_from_peaces(config, name, model=None, schema=None, classname=None, form=None):
+def add_convertor_from_peaces(config, name, model=None, schema=None, form=None):
     schema = schema or form #form is alias
-    classname = classname or name
     cnvmap = _find_convmap(config)
-    cnvmap.register_from_peaces(classname, name, config.maybe_dotted(model), config.maybe_dotted(schema))
+    cnvmap.register_from_peaces(name, config.maybe_dotted(model), config.maybe_dotted(schema))
 
