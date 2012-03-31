@@ -1,87 +1,50 @@
-class ModelMapping(object):
-    def __init__(self,model):
-        self.model = model
+from .interfaces import IConvertorMap
+from .interfaces import IConvertor
+from .interfaces import IConvertorFactory
+from zope.interface import implements
 
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
+class ConvertorMap(object):
+    implements(IConvertorMap)
+    def __init__(self, constructor):
+        self.constructor = constructor
 
-    def from_id(self, id_):
-        return model.query.filter_by(id=id_).one()
+    def register(self, name, convertor):
+        setattr(self, name, convertor)
 
-    def as_dict(self, obj):
-        from sqlalchemy.sql.operators import ColumnOperators
-        return {k: getattr(obj, k) for k, v in obj.__class__.__dict__.iteritems() \
-                    if isinstance(v, ColumnOperators)}
+    def register_from_peaces(self, name, *args, **kwargs):
+        convertor = self.constructor.create(*args, **kwargs)
+        self.register(name, convertor)
 
-    def from_dict(self, D):
-        instance = self.model()
-        items_fn = D.iteritems if hasattr(D, "iteritems") else D.items
-        for k, v in items_fn():
-            setattr(instance, k, v)
-        return instance
+class BaseConvertor(object):
+    implements(IConvertor)
 
-class _ListDict(dict):
-    """ dummy multidict
-    """
-    def getlist(self, k):
-        return [self[k]]
+## model schema convertor
+class ModelSchemaConvertorFactory(object):
+    implements(IConvertorFactory)
+    def __init__(self, modelmapping, schemamapping):
+        self.modelmapping = modelmapping
+        self.schemamapping = schemamapping
 
-class WtformsSchemaMapping(object):
-    def __init__(self, schema):
-        self.schema = schema
+    def create(self, name, model=None, schema=None):
+        me = self
+        def __init__(self, model, schema):
+            self.model = me.modelmapping(model)
+            self.schema = me.schemamapping(schema)
+            self.to = To(self.model, self.schema)
 
-    def __call__(self, *args, **kwargs):
-        return self.schema(*args, **kwargs)
+        attr = {}
+        attr["__init__"] = __init__
+        return type(name, (BaseConvertor, ), attr)
 
-    def from_postdata(self, postdata):
-        if hasattr(postdata, "getlist"):
-            return self.schema(postdata)
-        else:
-            return self.schema(_ListDict(postdata))
+class To(object):
+    def __init__(self, mmapping,  smapping):
+        self.mmapping = mmapping
+        self.smapping = smapping
 
-    def from_dict(self, D):
-        return self.schema(**D)
+    def model_from_schema(self, schema):
+        D = self.smapping.as_dict(schema)
+        return self.mmapping.from_dict(D)
 
-    def as_dict(self, schema):
-        return schema.data
-
-def convertor_factory(name, modelmapping, schemamapping):
-    class To(object):
-        def __init__(self, mmapping,  smapping):
-            self.mmapping = mmapping
-            self.smapping = smapping
-
-        def model_from_schema(self, schema):
-            D = self.smapping.as_dict(schema)
-            return self.mmapping.from_dict(D)
-
-        def schema_from_model(self, model):
-            D = self.mmapping.as_dict(model)
-            return self.smapping.from_dict(D)
-
-    def __init__(self, model, schema):
-        self.model = modelmapping(model)
-        self.schema = schemamapping(schema)
-        self.to = To(self.model, self.schema)
-
-    attr = {}
-    attr["__init__"] = __init__
-    return type(name, (object, ), attr)
-
-MyConvertor = convertor_factory("MyConvertor", 
-                                ModelMapping, 
-                                WtformsSchemaMapping)
-
-if __name__ == "__main__":
-    from point.forms import PointForm
-    from point.models import Point
-    C = MyConvertor(Point, PointForm)
-    print C.model()
-    print C.schema()
-    form = C.schema(name="foo")
-    print C.model.as_dict(C.model(name="foo"))
-    print C.schema.as_dict(C.schema(name="foo"))
-    print C.to.schema_from_model(C.model(name="foo"))
-    form = C.schema.from_postdata(dict(name="foo", x=100, y=20))
-    print form.validate()
-    print C.to.model_from_schema(form)
+    def schema_from_model(self, model):
+        D = self.mmapping.as_dict(model)
+        return self.smapping.from_dict(D)
