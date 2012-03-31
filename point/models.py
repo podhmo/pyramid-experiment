@@ -13,6 +13,7 @@ Base = declarative_base()
 
 class Point(Base):
     __tablename__ = "point"
+    query = DBSession.query_property()
     id = sa.Column(sa.Integer,primary_key=True)
     x = sa.Column(sa.Integer)
     y = sa.Column(sa.Integer)
