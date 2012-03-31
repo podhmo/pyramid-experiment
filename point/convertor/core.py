@@ -6,6 +6,7 @@ from zope.interface import implements
 class ConvertorMap(object):
     implements(IConvertorMap)
     def __init__(self, constructor):
+        import pdb; pdb.set_trace()
         self.constructor = constructor
 
     def register(self, name, convertor):

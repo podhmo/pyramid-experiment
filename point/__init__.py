@@ -9,9 +9,18 @@ def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     config = Configurator(settings=settings)
+    config.include(".convertor")
+
+    from .convertor.core import ModelSchemaConvertorFactory
+    from .convertor.model.alchemy import ModelMapping
+    from .convertor.schema.wtforms import SchemaMapping
+    config.define_convertor_factory(ModelSchemaConvertorFactory(ModelMapping, SchemaMapping))
+    config.set_request_property(".convertor.get_convertor_map", "C", reify=True)
+
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('point_create', '/point/create', factory="point.resouces.PointResources")
     config.add_route('point_list', '/point/list', factory="point.resouces.PointResources")
+    config.add_convertor_from_peaces("point", model=".models.Point", schema=".forms.PointForm")
     config.scan()
     return config.make_wsgi_app()
 
