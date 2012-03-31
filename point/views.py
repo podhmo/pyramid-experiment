@@ -43,7 +43,7 @@ class PointRegisterView(object):
         context = self.request.context
         point = context.get_point()
         context.update_data(point, form.data)
-        self.request.add(point)
+        context.add(point)
         return HTTPFound(location=self.request.route_url("point_list"))
     
 @view_defaults(route_name="point_list")
