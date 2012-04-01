@@ -4,10 +4,7 @@ from pyramid.httpexceptions import HTTPFound
 from .viewhelpers import RegisterPredicate
 from pyramid.decorator import reify
 
-
-class AfterInput(Exception):
-    pass
-
+from .convertor.schema import SchemaValidationException as AfterInput
 
 class PointViewMixin(object):
     @reify
