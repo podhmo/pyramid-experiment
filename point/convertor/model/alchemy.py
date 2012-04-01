@@ -5,8 +5,12 @@ class ModelMapping(object):
     def __call__(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    def from_id(self, id_):
-        return model.query.filter_by(id=id_).one()
+    @property
+    def query(self):
+        return self.model.query
+
+    def from_id(self, id_, force=False):
+        return self.model.query.filter_by(id=id_).one()
 
     def as_dict(self, obj):
         from sqlalchemy.sql.operators import ColumnOperators

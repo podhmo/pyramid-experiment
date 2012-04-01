@@ -8,7 +8,8 @@ def main(global_config, **settings):
     """
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
-    config = Configurator(settings=settings)
+    config = Configurator(settings=settings, 
+                          root_factory=".resources.DefaultResources")
     config.include(".convertor")
 
     from .convertor.core import ModelSchemaConvertorFactory

@@ -1,3 +1,5 @@
+from . import SchemaValidationException
+
 class _ListDict(dict):
     """ dummy multidict
     """
@@ -11,11 +13,20 @@ class SchemaMapping(object):
     def __call__(self, *args, **kwargs):
         return self.schema(*args, **kwargs)
 
-    def from_postdata(self, postdata):
-        if hasattr(postdata, "getlist"):
-            return self.schema(postdata)
+    def _validate_iff_need(self, form, validatep):
+        if not validatep:
+            return form
+        elif form.validate():
+            return form
         else:
-            return self.schema(_ListDict(postdata))
+            raise SchemaValidationException(form, message=str(form.errors))
+        
+    def from_postdata(self, postdata, validate=False):
+        if hasattr(postdata, "getlist"):
+            form = self.schema(postdata)
+        else:
+            form = self.schema(_ListDict(postdata))
+        return self._validate_iff_need(form, validate)
 
     def from_dict(self, D):
         return self.schema(**D)
