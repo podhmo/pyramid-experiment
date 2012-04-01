@@ -3,7 +3,7 @@ class SchemaValidationException(Exception):
         self.schema = schema
         self.message = message
 
-    def __str__(self, value):
+    def __str__(self):
         return self.message or "error: %s" % self.schema
 
 

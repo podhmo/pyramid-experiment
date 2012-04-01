@@ -13,20 +13,28 @@ class SchemaMapping(object):
     def __call__(self, *args, **kwargs):
         return self.schema(*args, **kwargs)
 
-    def _validate_iff_need(self, form, validatep):
+    def _validate_iff_need(self, schema, validatep, request):
         if not validatep:
-            return form
-        elif form.validate():
-            return form
+            return schema
+        elif schema.validate():
+            return schema
         else:
-            raise SchemaValidationException(form, message=str(form.errors))
-        
-    def from_postdata(self, postdata, validate=False):
+            if request:
+                # if hasattr(request, "_schema"):
+                #     raise Exception("conflict! request._schema")
+                request._schema = schema
+            raise SchemaValidationException(schema, message=str(schema.errors))
+
+    def from_request(self, request, validate=False, method="POST"):
+        data = getattr(request, method)
+        return self.from_postdata(data, validate=validate, request=request)
+
+    def from_postdata(self, postdata, validate=False, request=None):
         if hasattr(postdata, "getlist"):
             form = self.schema(postdata)
         else:
             form = self.schema(_ListDict(postdata))
-        return self._validate_iff_need(form, validate)
+        return self._validate_iff_need(form, validate, request)
 
     def from_dict(self, D):
         return self.schema(**D)
