@@ -1,7 +1,7 @@
 from pyramid.view import view_config
 from pyramid.view import view_defaults
 from pyramid.httpexceptions import HTTPFound
-from .viewhelpers import RegisterPredicate
+from .viewhelpers import RegisterPredicatePOST
 from pyramid.decorator import reify
 
 from .convertor.schema import SchemaValidationException as AfterInput
@@ -10,6 +10,7 @@ class PointViewMixin(object):
     @reify
     def C(self):
         return self.request.convert_map.point
+
     
 @view_defaults(route_name="point_create")
 class PointRegisterView(PointViewMixin):
@@ -28,12 +29,12 @@ class PointRegisterView(PointViewMixin):
         raise AfterInput
         
     @view_config(request_method="POST", renderer="point/confirm.mako",
-                 custom_predicates=[RegisterPredicate.confirm_p])
+                 custom_predicates=[RegisterPredicatePOST.confirm_p])
     def confirm(self):
         form = self.C.schema.from_request(self.request, validate=True)
         return {"form": form, "stage": "execute"}
 
-    @view_config(request_method="POST", custom_predicates=[RegisterPredicate.execute_p])
+    @view_config(request_method="POST", custom_predicates=[RegisterPredicatePOST.execute_p])
     def execute(self):
         form = self.C.schema.from_request(self.request, validate=True)
         obj = self.C.to.model_from_schema(form)
