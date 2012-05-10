@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <%
-  from js.bootstrap import bootstrap
-  bootstrap.need()
-  %>
+from js.bootstrap import bootstrap
+bootstrap.need()
+     %>
   <head>
     <%block name="with_head" />
   </head>
