@@ -15,6 +15,10 @@ requires = [
     'pyramid_debugtoolbar',
     'zope.sqlalchemy',
     'waitress',
+
+    "pyramid_fanstatic",
+    "fanstatic",
+    "js.bootstrap"
     ]
 
 setup(name='point',

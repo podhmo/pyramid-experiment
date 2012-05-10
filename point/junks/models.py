@@ -32,8 +32,4 @@ class Point(Base):
     y = sa.Column(sa.Integer)
     name = sa.Column(sa.String(255))
 
-class DefaultResources(object):
-    def __init__(self, request):
-        self._request = request
 
-    DBSession = DBSession
