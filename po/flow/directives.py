@@ -23,7 +23,8 @@ def add_route_flow(config, route_name, direction=None, direction_name=None, matc
     registry = config.registry
     if direction_name:
         direction = get_flow_direction(registry,direction_name)
-
+    if isinstance(direction, basestring):
+        direction = config.maybe_dotted(direction)
     route_flow = RequestFlowAdapterFactory(route_name, direction, match_param=match_param)
     registry.adapters.register([IRequest], IFlow, route_name, route_flow)
 

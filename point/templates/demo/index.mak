@@ -1,5 +1,5 @@
 <%inherit file="./base.mak"/>
-<%namespace file="./components.mak" name="co"/>
+<%namespace file="../components.mako" name="co"/>
 
 
 <div class="page-header">
